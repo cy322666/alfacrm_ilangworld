@@ -3,45 +3,72 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-//либа амо
 
 class Contact extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'contact_id',
         'phone',
         'email',
         'name',
     ];
-
     protected $primaryKey = 'contact_id';
     public $incrementing = false;
 
     public $amoApi;
-//    protected $attributes = [
-//        'delayed' => false,//по умолчанию
-//    ];
 
     public function __construct()
     {
-        //авторизация по апи
-        $amo = \Ufee\Amo\Oauthapi::setInstance([
-            'domain' => 'testdomain',
-            'client_id' => 'b6cf0658-b19...', // id приложения
-            'client_secret' => 'D546t4yRlOprfZ...',
-            'redirect_uri' => 'https://site.ru/amocrm/oauth/redirect',
-        ]);
+        $access = require $_SERVER['DOCUMENT_ROOT'].'/alfacrm/resources/access/amocrm.php';
 
-        $amo = \Ufee\Amo\Oauthapi::getInstance('b6cf0658-b19...');
+        $this->amoApi = \Ufee\Amo\Amoapi::setInstance([
+            'id'     => $access['id'],
+            'domain' => $access['subdomain'],
+            'login'  => $access['login'],
+            'hash'   => $access['api_key'],
+        ]);
     }
 
-    public function searchAmo($query)
+    public function searchAmo(Customer $customer)
     {
+        if($customer->phone) {
+            $contacts = $this->amoApi
+                ->contacts()
+                ->searchByPhone($customer->phone);
+        }
+        if($contacts && $customer->email) {
+            if($customer->email) {
+                $contacts = $this->amoApi
+                    ->contacts()
+                    ->searchByEmail($customer->email);
+            }
+        }
+        if(!$contacts) return false;
+            else return $contacts->first();
+    }
 
+    public function createAmo(Customer $customer)
+    {
+        $contact = $this->amoApi
+            ->contacts()
+            ->create();
+        $contact->name = $customer->name;
+        //$contact->attachTags(['Amoapi', 'Test']);
+        if($customer->phone) $contact->cf('Телефон')->setValue($customer->phone, 'Home');
+        if($customer->email) $contact->cf('Email')->setValue($customer->email);
+        $contact->save();
+
+        return $contact;
+    }
+
+    public function updateAmo($id, Customer $customer)
+    {
+        $contact = $this->amoApi
+            ->contacts()
+            ->find($id);
+        //$lead->sale = $customer->;//как в альфе?
+        if($customer->phone) $contact->cf('Телефон')->setValue($customer->phone, 'Home');
+        if($customer->email) $contact->cf('Email')->setValue($customer->email);
+        $contact->save();
     }
 }

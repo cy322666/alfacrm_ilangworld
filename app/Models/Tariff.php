@@ -5,15 +5,15 @@ namespace App\Models;
 use App\Models\Lead;
 use Illuminate\Database\Eloquent\Model;
 
-class Customer extends Model
+class Tariff extends Model
 {
     protected $fillable = [
-        'name',
-        'branch_id',
-        'entity_id',
+        '',
+        '',
+        'customer_id',
     ];
 
-    protected $primaryKey = 'entity_id';
+    //protected $primaryKey = 'entity_id';
     public $incrementing  = false;
     public $alfaApi;
 

@@ -14,7 +14,7 @@
 */
 
 //$router->get('/', 'CustomerController@create');
-$router->get('/', 'LeadController@create');
+$router->get('/', 'CustomerController@update');
 
 //$router->post('/leads/create', 'LeadController@create');
 //$router->post('/leads/update', 'LeadController@update');
