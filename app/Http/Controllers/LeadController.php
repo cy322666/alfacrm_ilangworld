@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Lead;
 use App\Models\Contact;
+use App\Models\Customer;
 
 class LeadController extends Controller
 {
@@ -30,22 +30,28 @@ class LeadController extends Controller
          */
         $contact = Contact::find($arr['contact_id']);
         if(empty($contact)) {
-            $contact = Contact::create($arr);
+            $contact  = Contact::create($arr);
             $customer = Customer::create($arr);
             $alfa_customer = $customer->searchAlfa($contact);
             if ($alfa_customer) {
-                $contact->update();//id customer
-                $contact->save();
-                $customer->update();//id contact_id and customer
+                //в альфа есть лид
+                //смотрим статус?
+//                $contact->customer_id;//id customer //надо ли???
+//                $contact->save();
+                $customer->contact_id;
+                $customer->id;
                 $customer->save();
+            } else {
+                //в альфа нет лида
             }
         } else {
-            $contact->update($arr);
-            $contact->save();
+            //контакт есть в бд
             $customer = Customer::find($contact->customer_id);
             $customer->update($arr);
             $customer->save();
             $customer->updateAlfa($contact);
+            $contact->update($arr);
+            $contact->save();
         }
         //теперь что касается сделки
         $lead = Lead::create($arr);
@@ -53,27 +59,19 @@ class LeadController extends Controller
         $lead->customer_id = $customer->id;
         $lead->save();
 
+        if(!empty($customer->id)) {
+            $alfa_customer = $customer->updateAlfa($lead);
+        } else {
+            $alfa_customer = $customer->createAlfa($lead);
+            $lead->customer_id = $alfa_customer['id'];
+            $lead->save();
+        }
+        $amo_lead = $lead->amoApi
+            ->leads()
+            ->find($lead->id);
+        //$amo_lead->cf('Ссылка на лид в Альфа') = 'https://'.$customer->id;
+        $amo_lead->save();
 
-//
-//            if(empty($amo_contact->first())) {
-//                $amo_contact = $contact->create();
-//                $amo_contact->name = $arr['name'];
-//                $amo_contact->phone = $arr['phone'];
-//                $amo_contact->save();
-//            } else {
-//                $amo_contact = $amo_contact->first();
-//
-//                dd($amo_contact);
-//            }
-//        } else {
-//            //контакт есть в бд
-//            $contact = Contact::update($arr); //?
-//        }
-//
-//        $customer = Customer::where(['lead_id' => $arr['id']]);
-//
-//        $alfa_customer = $customer->alfaApi->Customer();
-//        $alfa_customer->searchAlfa($contact->phone);
         /*
          * поиск существующего лида в альфе
          * если есть записываем

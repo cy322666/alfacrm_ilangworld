@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Lead;
+use App\Models\Contact;
+use App\Models\Customer;
 use Illuminate\Database\Eloquent\Model;
 
 class Tariff extends Model

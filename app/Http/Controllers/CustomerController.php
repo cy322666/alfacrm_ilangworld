@@ -18,6 +18,8 @@ class CustomerController extends Controller
 
     public function create()//Request $request
     {
+        //скорее всего не понадобится
+
         $arr = [
             'name' => 'test',
             'branch_id' => '1',
@@ -112,6 +114,8 @@ class CustomerController extends Controller
             'branch_id' => '1',
             'entity_id' => 11111,
         ];
+
+        //тоже самое что и у лида
 
         $customer = Customer::find($arr);
         if($customer) {
