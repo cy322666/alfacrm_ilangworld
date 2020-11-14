@@ -1,6 +1,7 @@
 /vendor
 /resources/access
 /.idea
+.idea
 Homestead.json
 Homestead.yaml
 .env

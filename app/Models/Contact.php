@@ -12,14 +12,14 @@ class Contact extends Model
         'email',
         'name',
     ];
-    protected $primaryKey = 'contact_id';
+    //protected $primaryKey = 'contact_id';
     public $incrementing = false;
 
     public $amoApi;
 
     public function __construct()
     {
-        $access = require $_SERVER['DOCUMENT_ROOT'].'/alfacrm/resources/access/amocrm.php';
+        $access = require $_SERVER['DOCUMENT_ROOT'].'/alfacrm_ilangworld/resources/access/amocrm.php';
 
         $this->amoApi = \Ufee\Amo\Amoapi::setInstance([
             'id'     => $access['id'],

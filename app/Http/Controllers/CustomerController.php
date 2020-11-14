@@ -26,6 +26,8 @@ class CustomerController extends Controller
         ];
 
         $customer = Customer::create($arr);
+
+
         $contact  = Contact::where(['phone' => $arr['phone']])->first;
 
         if(empty($contact->contact_id)) {
