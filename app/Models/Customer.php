@@ -21,8 +21,8 @@ class Customer extends Model
 
     public function __construct()
     {
-        require $_SERVER['DOCUMENT_ROOT'].'/alfacrm/app/Library/alfaCRM/Api.php';
-        $access = require $_SERVER['DOCUMENT_ROOT'].'/alfacrm/resources/access/alfacrm.php';
+        require $_SERVER['DOCUMENT_ROOT'].'/alfacrm_ilangworld/app/Library/alfaCRM/Api.php';
+        $access = require $_SERVER['DOCUMENT_ROOT'].'/alfacrm_ilangworld/resources/access/alfacrm.php';
 
         $this->alfaApi = new Api($access);
     }
