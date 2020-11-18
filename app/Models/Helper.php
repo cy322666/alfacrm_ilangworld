@@ -4,29 +4,26 @@ namespace App\Models;
 
 class Helper
 {
-    public static function transformStatus($status_id)
+    public static function getNameStatus($model, $status_id)
     {
-        $statuses = [
-            123 => 321,
-            456 => 654,
-        ];
+        $pipelines = $model->amoApi
+            ->account
+            ->pipelines
+            ->toArray();
 
-        foreach ($statuses as $amo_status => $alfa_status) {
-            if($status_id == $amo_status)  return $alfa_status;
-            if($status_id == $alfa_status) return $amo_status;
+        foreach ($pipelines as $pipeline_id => $pipeline) {
+            if($pipeline_id == 3183190) {
+                foreach ($pipeline['statuses']->toArray() as $status) {
+                    if($status['id'] == $status_id) return $status['name'];
+                }
+            }
         }
     }
 
-    public static function transformBranch($id)
+    public static function getIdStatusByName($alfaStatuses, $amoStatusName)
     {
-        $branches = [
-            123 => 321,
-            456 => 654,
-        ];
-
-        foreach ($branches as $amo_branch => $alfa_branch) {
-            if($id == $amo_branch)  return $alfa_branch;
-            if($id == $alfa_branch) return $amo_branch;
+        foreach ($alfaStatuses as $alfaStatus) {
+            if($alfaStatus['name'] == $amoStatusName ) return $alfaStatus['id'];
         }
     }
 
@@ -37,7 +34,7 @@ class Helper
 
         if (strlen($phone) <= 11 )
         {
-            $phone = '7' . substr($phone, -10, 10);
+            $phone = '+7' . substr($phone, -10, 10);
         }
         return $phone;
     }

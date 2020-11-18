@@ -16,6 +16,23 @@ class CustomerController extends Controller
 //        $this->$action($request);
     }
 
+    public function update_status()
+    {
+        $customer = json_decode(file_get_contents(storage_path('update_status_alfa.txt')), true);
+
+        $customer_id = 3;
+        $lead_status_id = 3;
+
+        $customer = Customer::find($customer_id);
+        $customer->status_id = $lead_status_id;
+
+        $lead = Lead::find($customer->lead_id);
+        //трансформируем статус
+        //сохраняем
+        //обновляем в амо
+
+    }
+
     public function create()//Request $request
     {
         //скорее всего не понадобится

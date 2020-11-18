@@ -7,3 +7,4 @@ Homestead.yaml
 .env
 .phpunit.result.cache
 /app/Library
+/storage/create_lead.txt

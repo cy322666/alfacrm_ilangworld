@@ -12,6 +12,7 @@ class Api
     public $Branch;
     public $Customer;
     public $LeadSource;
+    public $LeadStatus;
     public $Calendar;
 
     private $url = '/auth/login';
@@ -27,6 +28,7 @@ class Api
         'Branch' => '',
         'Customer' => '',
         'LeadSource' => '',
+        'LeadStatus' => '',
         'Calendar' => ''
     ];
 
@@ -74,7 +76,7 @@ class Api
         if($Response != false) {
             $this->token = $Response;
             $this->authorization = true;
-            file_put_contents('token.txt', $this->token);
+            file_put_contents(storage_path('token.txt'), $this->token);
         }
     }
 

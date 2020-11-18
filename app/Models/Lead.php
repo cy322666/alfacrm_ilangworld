@@ -7,20 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 class Lead extends Model
 {
     protected $fillable = [
-        'id',
+        'lead_id',
         'pipeline_id',
         'status_id',
         'contact_id',
         //'cost',
     ];
-    //protected $primaryKey = 'lead_id';
-    public $incrementing  = false;
+    protected $primaryKey = 'lead_id';
+//    protected $keyType = 'string';
+    //public $incrementing  = false;
 
     public $amoApi;
 
     public function __construct()
     {
-        $access = require $_SERVER['DOCUMENT_ROOT'].'/alfacrm/resources/access/amocrm.php';
+        $access = require $_SERVER['DOCUMENT_ROOT'].'/alfacrm_ilangworld/resources/access/amocrm.php';
 
         $this->amoApi = \Ufee\Amo\Amoapi::setInstance([
             'id'     => $access['id'],
