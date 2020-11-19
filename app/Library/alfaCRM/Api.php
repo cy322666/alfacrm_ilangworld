@@ -34,12 +34,10 @@ class Api
 
     public function __construct($access)
     {
-        require __DIR__.'/Base/Curl.php';
-        //require_once __DIR__.'/Models/Branch.php';
+        require_once __DIR__.'/Base/Curl.php';
 
         $this->initModels();
         $this->initAccess($access);
-        $this->Curl = new Curl();
         $this->auth();
     }
 
@@ -50,12 +48,7 @@ class Api
 
             $className = __NAMESPACE__.'\Models\\'.$key;
             $class = str_replace($this->prefixModel, "", $className);
-
-            //var_dump($this->Curl);
-
             $this->$class = new $className();
-
-            //echo '<pre>'; print_r($this->$class); echo '</pre>';
         }
     }
 
@@ -69,6 +62,8 @@ class Api
 
     private function auth()
     {
+        $this->Curl = new Curl();
+
         $Response = Curl::Query($this->url, [
             'email' => $this->access['email'],
             'api_key' => $this->access['api_key']

@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contact;
+use App\Models\Helper;
 use Illuminate\Http\Request;
 use App\Models\Customer;
 use App\Models\Lead;
-//подключение альфалибы
 
 class CustomerController extends Controller
 {
@@ -18,19 +19,46 @@ class CustomerController extends Controller
 
     public function update_status()
     {
-        $customer = json_decode(file_get_contents(storage_path('update_status_alfa.txt')), true);
+        $arr = json_decode(file_get_contents(storage_path('update_status_alfa.txt')), true);
 
-        $customer_id = 3;
-        $lead_status_id = 3;
+        //dd($arr);
+        $customer_id = $arr['entity_id'];
+        $lead_status_id = $arr['fields_new']['lead_status_id'];
 
         $customer = Customer::find($customer_id);
-        $customer->status_id = $lead_status_id;
+        if(empty($customer)) $customer = new Customer();
 
-        $lead = Lead::find($customer->lead_id);
-        //трансформируем статус
-        //сохраняем
-        //обновляем в амо
+        $alfa_customer = $customer->alfaApi->Customer;
+        $alfa_customer->findById($customer_id, 0);//0 - лид//1 - клиент
 
+        $customer->customer_id = $customer_id;
+        $customer->branch_id   = $alfa_customer['branch_ids'][0];
+        $customer->study_status_id = $lead_status_id;
+        $customer->legal_name = $alfa_customer['legal_name'];
+        $customer->legal_type = $alfa_customer['legal_type'];
+        $customer->phone = $alfa_customer['phone'];
+        $customer->datetime_trial = $alfa_customer['datetime_trial'];
+        $customer->languange = $alfa_customer['languange'];
+        $customer->loyalty = $alfa_customer['loyalty'];
+        $customer->method = $alfa_customer['method'];
+        $customer->teacher = $alfa_customer['teacher'];
+        $customer->email = $alfa_customer['email'][0];
+        $customer->save();
+
+        $lead = Lead::find($customer->lead_id);//если пряморукое создание, если из альфы создается, то сложнее
+        /*
+         * обновление в таблице лида
+         */
+        $lead->status_id = Helper::convertAlfaStatus($customer->status_id);
+        $lead->save();
+
+        $lead->updateAmo($customer);
+
+        $contact = Contact::find($lead->contact_id);
+        $contact->updateAmo($customer);
+        /*
+         * обновление в таблице контакта
+         */
     }
 
     public function create()//Request $request

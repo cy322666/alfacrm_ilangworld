@@ -16,24 +16,16 @@ class Customer
     public $phone;
     public $legal_name;
     public $study_status_id;
-    public $teacher_ids;
+    public $teacher;
     public $branch_ids;
-    public $custom_id_amo_sdelka;
-    public $lead_source_id;
+    public $branch;
+    public $datetime_trial;
+    //public $lead_source_id;
     public $lead_status_id;
     public $method;
-    public $target;
-    public $changes;
-    public $nps;
-    public $klass;
-    public $branch;
-    public $links;
-    public $level;
+    public $languange;
+    public $loyalty;
     public $email;
-    public $school;
-    public $product;
-    public $date_trial;
-    public $employment;
 
     private $Curl;
     private $url = '/customer/';
@@ -50,26 +42,19 @@ class Customer
             'branch_ids' => $this->branch_ids,
             'is_study' => $this->is_study,
             'lead_status_id' => $this->lead_status_id,
-            'lead_source_id' => $this->lead_source_id,
+            //'lead_source_id' => $this->lead_source_id,
             'legal_type' => $this->legal_type,
             'legal_name' => $this->legal_name,
             'study_status_id' => $this->study_status_id,
-//            'custom_date_trial' => $this->date_trial,
-//            'custom_id_amo_sdelka' => $this->custom_id_amo_sdelka,
-//            'custom_level' => $this->level,
-//            'custom_method' => $this->method,
-//            'custom_target' => $this->target,
-//            'custom_changes' => $this->changes,
-//            'custom_nps' => $this->nps,
-//            'custom_employment' => $this->employment,
-//            'custom_links' => $this->links,
-//            'custom_school' => $this->school,
-//            'custom_product' => $this->product,
+            'custom_datetime_trial' => $this->datetime_trial,
+            'custom_teacher' => $this->teacher,
+            'custom_method' => $this->method,
+            'custom_languange' => $this->languange,
+            'custom_loyalty' => $this->loyalty,
             'phone' => $this->phone,
             'email' => $this->email,
-            'custom_klass' => $this->klass,
             'dob' => $this->dob,
-            'note' => $this->note
+            //'note' => $this->note
         ];
 
         return $arrayCreateFields;
@@ -79,38 +64,28 @@ class Customer
     {
         $link = '/'.$this->branch.'/customer/index';
 
-        echo $link;
         $Response = $this->Curl::Query($link, [
             'phone' => $phone,
             'is_study' => $this->is_study,
             'branch_ids' => [$this->branch]
         ]);
 
-        $this->parseResponse($Response);
-        return $Response;
+        if(!empty($Response['items'][0])) return $Response;
+        else return false;
     }
 
-    public function getStudyForPipeline($pipeline_id)
+    public function findByEmail($email)
     {
-        if($pipeline_id == '2247049') {
-            return 0;
-        }
-        if($pipeline_id == '3365215') {
-            return 1;
-        }
-    }
+        $link = '/'.$this->branch.'/customer/index';
 
-    public function getConvertStatus($status_id)
-    {
-        $arrayStatuses = require PATH . 'app/config/statuses.php';
-        foreach ($arrayStatuses as $status) {
-            if($status_id == $status['alfaCRM']) {
-                return $status['amoCRM'];
-            }
-            if($status_id == $status['amoCRM']) {
-                return $status['alfaCRM'];
-            }
-        }
+        $Response = $this->Curl::Query($link, [
+            'email' => $email,
+            'is_study' => $this->is_study,
+            'branch_ids' => [$this->branch]
+        ]);
+
+        if(!empty($Response['items'][0])) return $Response;
+        else return false;
     }
 
     private function parseResponse($Response)
@@ -136,17 +111,21 @@ class Customer
         return $Response;
     }
 
-    public function findById($id)
+    public function findById($id, $study)
     {
+        $this->branch = 1;
+        $this->is_study = $study;
+
         $link = '/'.$this->branch.'/customer/index';
 
         $Response = $this->Curl::Query($link, [
             'id' => $id,
             'is_study' => $this->is_study,
-            'branch_ids' => [1]
+            'branch_ids' => [$this->branch]
         ]);
 
-        return $Response;
+        if(!empty($Response['items'][0])) return $Response;
+        else return false;
     }
 
     public function setBranchId($id)
@@ -157,17 +136,10 @@ class Customer
     public function create()
     {
         $link = $this->url . 'create';
-        $arrayCreateFields = $this->buildArrayFelds();
-        //echo $link;
 
+        $arrayCreateFields = $this->buildArrayFelds();
         $Response = $this->Curl::Query($link, $arrayCreateFields);
-        //echo '<pre>'; print_r($Response); echo '</pre>';
 
         return $Response;
-//        if($Response['success'] != false) {
-//            $this->id = $Response['model']['id'];
-//            return true;
-//            //$this->parseResponse($Response);
-//        }
     }
 }

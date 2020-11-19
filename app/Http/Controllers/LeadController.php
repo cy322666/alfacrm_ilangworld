@@ -15,29 +15,36 @@ class LeadController extends Controller
         $lead_id = $lead['status'][0]['id'] ?  $lead['status'][0]['id'] : $lead['add'][0]['id'];
 
         $lead = Lead::find($lead_id);
-        //3183190
-//        if(!$lead) $lead = new Lead();
-//
-//        $amo_lead = $lead->amoApi->leads()->find($lead_id);
-//
-//        $lead->lead_id     = $amo_lead->id;
-//        $lead->name        = $amo_lead->name;
-//        $lead->sale        = $amo_lead->sale;
-//        $lead->contact_id  = $amo_lead->main_contact_id;
-//        $lead->status_id   = $amo_lead->status_id;
-//        $lead->pipeline_id = $amo_lead->pipeline_id;
-//        $lead->save();
 
-          if($lead->contact_id) $contact = Contact::find($lead->contact_id);
-          if(!$contact) $contact = new Contact();
+        if(!$lead) $lead = new Lead();
+
+        $amo_lead = $lead->amoApi->leads()->find($lead_id);
+
+        $lead->lead_id = $amo_lead->id;
+        $lead->name    = $amo_lead->name;
+        //$lead->sale    = $amo_lead->sale;
+        $lead->contact_id  = $amo_lead->main_contact_id;
+        $lead->status_id   = $amo_lead->status_id;
+        $lead->pipeline_id = $amo_lead->pipeline_id;
+        $lead->datetime_trial = $amo_lead->cf('Дата и время пробного')->getValue();
+        $lead->teacher   = $amo_lead->cf('Преподаватель')->getValue();
+        $lead->method    = $amo_lead->cf('Вид обучения')->getValue();
+        $lead->languange = $amo_lead->cf('Язык обучения')->getValue();
+        $lead->save();
+
+        if($lead->contact_id) $contact = Contact::find($lead->contact_id);
+        if(empty($contact))   $contact = new Contact();
 
         $amo_contact = $contact->amoApi->contacts()->find($lead->contact_id);
 
         $contact->contact_id = $amo_contact->id;
         $contact->name       = $amo_contact->name;
-        //$contact->phone      = $amo_contact->phone;
+        $contact->phone      = $amo_contact->cf('Телефон')->getValue();
+        $contact->email      = $amo_contact->cf('Email')->getValue();
+        $contact->loyalty    = $amo_contact->cf('Лояльность')->getValue();//Лояльность (контакт)
+        $contact->sex        = $amo_contact->cf('Пол')->getValue();       //Пол (контакт)
+        $contact->age        = $amo_contact->cf('Возраст')->getValue();   //Возраст (контакт)
         $contact->save();
-//        dd($contact);
 
         //теперь что касается сделки
         if($lead->customer_id) {
@@ -50,14 +57,50 @@ class LeadController extends Controller
         } else {
             $customer = new Customer();
 
-            $alfa_customer = $customer->searchAlfa($lead, $contact);//проверка статуса?//типа клиента?
-            if(!$alfa_customer) {
-                $alfa_customer = $customer->createAlfa($lead);
-            }
+            $alfa_customer = $customer->searchAlfa($contact);//проверка статуса?//типа клиента?
+
+            if(!$alfa_customer) $alfa_customer = $customer->createAlfa($lead, $contact);
+
+            $customer->customer_id = $alfa_customer['id'];
             $lead->customer_id = $alfa_customer['id'];
+
+            $customer->save();
             $lead->save();
         }
-
+        dd($alfa_customer);
+        /*
+         *
+        "id" => 5
+        "branch_ids" => array:1 [▶]
+        "teacher_ids" => []
+        "name" => "Вячеслав"
+        "color" => null
+        "is_study" => 0
+        "study_status_id" => 1
+        "lead_status_id" => 2
+        "lead_reject_id" => null
+        "lead_source_id" => null
+        "assigned_id" => null
+        "legal_type" => 1
+        "legal_name" => "legal_name"
+        "company_id" => null
+        "dob" => ""
+        "balance" => null
+        "balance_base" => null
+        "paid_count" => null
+        "next_lesson_date" => null
+        "paid_till" => null
+        "last_attend_date" => null
+        "b_date" => "2020-11-19 14:08:59"
+        "e_date" => "2030-12-31"
+        "note" => ""
+        "paid_lesson_count" => null
+        "paid_lesson_date" => null
+        "phone" => array:1 [▶]
+        "email" => array:1 [▶]
+        "web" => []
+        "addr" => []
+         */
         //$customer->customer_id = $alfa_customer['id'];
         //$customer->status_id = $alfa_customer['status_id'];
 

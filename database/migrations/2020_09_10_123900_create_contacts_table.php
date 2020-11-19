@@ -17,11 +17,13 @@ class CreateContactsTable extends Migration
             $table->increments('id');
             $table->timestamps();
             $table->integer('contact_id');
+            $table->integer('age');
             //$table->dateTime('bod')->nullable();
             $table->string('name')->nullable();
             $table->string('phone')->nullable();
-            //$table->string('confirmed')->nullable();
-            //$table->integer('seance_length')->nullable();
+            $table->string('email')->nullable();
+            $table->string('loyalty')->nullable();
+            $table->string('sex')->nullable();
         });
     }
 

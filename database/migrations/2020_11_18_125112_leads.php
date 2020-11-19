@@ -20,8 +20,12 @@ class Leads extends Migration
             $table->integer('status_id')->nullable();
             $table->integer('pipeline_id')->nullable();
             $table->integer('customer_id')->nullable();
-            $table->integer('sale')->nullable();
+            //$table->integer('sale')->nullable();
             $table->string('name')->nullable();
+            $table->string('teacher')->nullable();
+            $table->string('method')->nullable();
+            $table->string('languange')->nullable();
+            $table->dateTime('datetime_trial')->nullable();
             $table->timestamps();
         });
     }

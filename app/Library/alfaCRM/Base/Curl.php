@@ -54,7 +54,6 @@ class Curl
 
     private static function getResponse($link, $Response)
     {
-        var_dump($link);
         switch ($link) {//200 /
             case '/auth/login':
                 if($Response['token']) {

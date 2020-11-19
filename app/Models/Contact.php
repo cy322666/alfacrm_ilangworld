@@ -6,14 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Contact extends Model
 {
-    protected $fillable = [
-        'contact_id',
-        'phone',
-        'email',
-        'name',
-    ];
-    //protected $primaryKey = 'contact_id';
-    public $incrementing = false;
+    protected $primaryKey = 'contact_id';
+    //public $incrementing = false;
 
     public $amoApi;
 
@@ -61,14 +55,20 @@ class Contact extends Model
         return $contact;
     }
 
-    public function updateAmo($id, Customer $customer)
+    public function updateAmo(Customer $customer)
     {
-        $contact = $this->amoApi
+        $amo_contact = $this->amoApi
             ->contacts()
-            ->find($id);
-        //$lead->sale = $customer->;//как в альфе?
-        if($customer->phone) $contact->cf('Телефон')->setValue($customer->phone, 'Home');
-        if($customer->email) $contact->cf('Email')->setValue($customer->email);
-        $contact->save();
+            ->find($customer->contact_id);
+
+        if($customer->phone) $amo_contact->cf('Телефон')->setValue($customer->phone, 'Home');
+        if($customer->email) $amo_contact->cf('Email')->setValue($customer->email);
+        if($customer->name) $amo_contact->name;
+
+        $amo_contact->cf('Лояльность')->setValue($customer->loyalty);//Лояльность (контакт)
+        $amo_contact->cf('Пол')->setValue($customer->sex );          //Пол (контакт)
+        $amo_contact->cf('Возраст')->setValue($customer->age );      //Возраст (контакт)
+
+        $amo_contact->save();
     }
 }

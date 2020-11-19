@@ -27,6 +27,19 @@ class Helper
         }
     }
 
+    public static function convertAlfaStatus($alfaStatus)
+    {
+        $statuses = [
+            '3' => '32445634',//проведено
+            '2' => '32429281',//записан
+            //не пришел 5
+        ];
+
+        foreach ($statuses as $key => $amoStatus) {
+            if($key == $alfaStatus) return $amoStatus;
+        }
+    }
+
     public static function clearPhone($phone)
     {
         $value = [ "(", ")", "-", "+", " ", ",","." ];
