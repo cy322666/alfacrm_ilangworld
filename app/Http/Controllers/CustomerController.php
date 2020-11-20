@@ -26,32 +26,30 @@ class CustomerController extends Controller
         $lead_status_id = $arr['fields_new']['lead_status_id'];
 
         $customer = Customer::find($customer_id);
+
         if(empty($customer)) $customer = new Customer();
 
-        $alfa_customer = $customer->alfaApi->Customer;
-        $alfa_customer->findById($customer_id, 0);//0 - лид//1 - клиент
+        $alfa_customer = $customer->alfaApi->Customer->findById($customer_id, 0);//0 - лид//1 - клиент;
 
         $customer->customer_id = $customer_id;
-        $customer->branch_id   = $alfa_customer['branch_ids'][0];
-        $customer->study_status_id = $lead_status_id;
-        $customer->legal_name = $alfa_customer['legal_name'];
-        $customer->legal_type = $alfa_customer['legal_type'];
-        $customer->phone = $alfa_customer['phone'];
-        $customer->datetime_trial = $alfa_customer['datetime_trial'];
-        $customer->languange = $alfa_customer['languange'];
-        $customer->loyalty = $alfa_customer['loyalty'];
-        $customer->method = $alfa_customer['method'];
-        $customer->teacher = $alfa_customer['teacher'];
-        $customer->email = $alfa_customer['email'][0];
+        if($alfa_customer['custom_datetime_trial'] != '') $customer->datetime_trial = $alfa_customer['custom_datetime_trial'];
+        //$customer->branch_id   = $alfa_customer['branch_ids'][0];
+        //$customer->study_status_id = $lead_status_id;
+        //$customer->legal_name = $alfa_customer['legal_name'];
+        //$customer->legal_type = $alfa_customer['legal_type'];
+        $customer->phone = $alfa_customer['phone'][0];
+        $customer->languange = $alfa_customer['custom_languange'];
+        $customer->loyalty = $alfa_customer['custom_loyalty'];
+        $customer->method = $alfa_customer['custom_method'];
+        $customer->teacher = $alfa_customer['custom_teacher'];
+        $customer->email = implode('', $alfa_customer['email']);
+        $customer->status_id = $lead_status_id;
         $customer->save();
 
         $lead = Lead::find($customer->lead_id);//если пряморукое создание, если из альфы создается, то сложнее
         /*
          * обновление в таблице лида
          */
-        $lead->status_id = Helper::convertAlfaStatus($customer->status_id);
-        $lead->save();
-
         $lead->updateAmo($customer);
 
         $contact = Contact::find($lead->contact_id);
@@ -61,96 +59,96 @@ class CustomerController extends Controller
          */
     }
 
-    public function create()//Request $request
-    {
-        //скорее всего не понадобится
-
-        $arr = [
-            'name' => 'test',
-            'branch_id' => '1',
-            'entity_id' => 11111,
-            'phone' => 79999999999,
-        ];
-
-        $customer = Customer::create($arr);
-
-
-        $contact  = Contact::where(['phone' => $arr['phone']])->first;
-
-        if(empty($contact->contact_id)) {
-            $amo_contacts = $contact->amoApi->findByPhone($arr['phone']);
-            if($amo_contacts->first()) {
-                $amo_contact = $amo_contacts->first();
-                $contact = Contact::createOrUpdate($amo_contact);
-                $customer->update(['contact_id' => $amo_contact->phone]);
-                $customer->save();
-            } else {
-                $amo_contact = $contact->amoApi->contacts();
-                $amo_contact->name = '';
-                $amo_contact->phone = '';
-                $amo_contact->save();
-
-                $contact->contact_id = $amo_contact->id;
-                $contact->save();
-
-                $leads = $amo_contact->leads();
-                if(!empty($leads->first())) {
-                    foreach ($leads->toArray() as $array_lead) {
-                        if ($array_lead['status_id'] != 142 &&
-                            $array_lead['status_id'] != 143) {
-
-                            $amo_lead = $contact->amoApi->leads();
-                            $amo_lead->find($array_lead['id']);
-
-                            $lead = createOrUpdate($amo_lead);
-                            $customer->lead_id = $amo_lead->id;
-                            $customer->save();
-
-                            break;
-                        }
-                    }
-                    //если не нашли активную сделку
-                    //создаем сделку из под контакта
-                    $amo_lead = $amo_contact->create->leads();
-                    $amo_lead->price = $customer->price;
-                    $amo_lead->save();
-
-                    $lead = createOrUpdate($amo_lead);
-                    $customer->lead_id = $amo_lead->id;
-                    $customer->save();
-
-                    $alfa_customer = $customer->alfaApi->Customer();
-                    $alfa_customer->lead_id = $amo_lead->id;
-                    $alfa_customer->save();
-                } else {
-                    //создаем сделку из под контакта
-                    $amo_lead = $amo_contact->create->leads();
-                    $amo_lead->price = $customer->price;
-                    $amo_lead->save();
-
-                    $lead = createOrUpdate($amo_lead);
-                    $customer->lead_id = $amo_lead->id;
-                    $customer->save();
-
-                    $alfa_customer = $customer->alfaApi->Customer();
-                    $alfa_customer->lead_id = $amo_lead->id;
-                    $alfa_customer->save();
-                }
-            }
-        } else {
-            //нет контакта в бд, ищем в амо и тд
-            //создать контакт
-            //...
-        }
-        /*
-         * поискать контакт в бд
-         * поискать контакт в амо
-         * если нет создать если есть подтянуть в бд
-         * если есть подтянуть в бд
-         * обновить ее в амо
-         */
-
-    }
+//    public function create()//Request $request
+//    {
+//        //скорее всего не понадобится
+//
+//        $arr = [
+//            'name' => 'test',
+//            'branch_id' => '1',
+//            'entity_id' => 11111,
+//            'phone' => 79999999999,
+//        ];
+//
+//        $customer = Customer::create($arr);
+//
+//
+//        $contact  = Contact::where(['phone' => $arr['phone']])->first;
+//
+//        if(empty($contact->contact_id)) {
+//            $amo_contacts = $contact->amoApi->findByPhone($arr['phone']);
+//            if($amo_contacts->first()) {
+//                $amo_contact = $amo_contacts->first();
+//                $contact = Contact::createOrUpdate($amo_contact);
+//                $customer->update(['contact_id' => $amo_contact->phone]);
+//                $customer->save();
+//            } else {
+//                $amo_contact = $contact->amoApi->contacts();
+//                $amo_contact->name = '';
+//                $amo_contact->phone = '';
+//                $amo_contact->save();
+//
+//                $contact->contact_id = $amo_contact->id;
+//                $contact->save();
+//
+//                $leads = $amo_contact->leads();
+//                if(!empty($leads->first())) {
+//                    foreach ($leads->toArray() as $array_lead) {
+//                        if ($array_lead['status_id'] != 142 &&
+//                            $array_lead['status_id'] != 143) {
+//
+//                            $amo_lead = $contact->amoApi->leads();
+//                            $amo_lead->find($array_lead['id']);
+//
+//                            $lead = createOrUpdate($amo_lead);
+//                            $customer->lead_id = $amo_lead->id;
+//                            $customer->save();
+//
+//                            break;
+//                        }
+//                    }
+//                    //если не нашли активную сделку
+//                    //создаем сделку из под контакта
+//                    $amo_lead = $amo_contact->create->leads();
+//                    $amo_lead->price = $customer->price;
+//                    $amo_lead->save();
+//
+//                    $lead = createOrUpdate($amo_lead);
+//                    $customer->lead_id = $amo_lead->id;
+//                    $customer->save();
+//
+//                    $alfa_customer = $customer->alfaApi->Customer();
+//                    $alfa_customer->lead_id = $amo_lead->id;
+//                    $alfa_customer->save();
+//                } else {
+//                    //создаем сделку из под контакта
+//                    $amo_lead = $amo_contact->create->leads();
+//                    $amo_lead->price = $customer->price;
+//                    $amo_lead->save();
+//
+//                    $lead = createOrUpdate($amo_lead);
+//                    $customer->lead_id = $amo_lead->id;
+//                    $customer->save();
+//
+//                    $alfa_customer = $customer->alfaApi->Customer();
+//                    $alfa_customer->lead_id = $amo_lead->id;
+//                    $alfa_customer->save();
+//                }
+//            }
+//        } else {
+//            //нет контакта в бд, ищем в амо и тд
+//            //создать контакт
+//            //...
+//        }
+//        /*
+//         * поискать контакт в бд
+//         * поискать контакт в амо
+//         * если нет создать если есть подтянуть в бд
+//         * если есть подтянуть в бд
+//         * обновить ее в амо
+//         */
+//
+//    }
 
     public function update()
     {

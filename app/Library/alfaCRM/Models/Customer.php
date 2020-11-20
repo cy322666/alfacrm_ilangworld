@@ -20,7 +20,6 @@ class Customer
     public $branch_ids;
     public $branch;
     public $datetime_trial;
-    //public $lead_source_id;
     public $lead_status_id;
     public $method;
     public $languange;
@@ -70,7 +69,7 @@ class Customer
             'branch_ids' => [$this->branch]
         ]);
 
-        if(!empty($Response['items'][0])) return $Response;
+        if(!empty($Response['items'][0])) return $Response['items'][0];
         else return false;
     }
 
@@ -84,9 +83,19 @@ class Customer
             'branch_ids' => [$this->branch]
         ]);
 
-        if(!empty($Response['items'][0])) return $Response;
+        if(!empty($Response['items'][0])) return $Response['items'][0];
         else return false;
     }
+
+//    public function __get($name)
+//    {
+//        if(empty($this->$name)) {
+//            $this->$name = '';
+//
+//            dd($this->$name);
+//            return $this->$name;
+//        }
+//    }
 
     private function parseResponse($Response)
     {
@@ -124,7 +133,7 @@ class Customer
             'branch_ids' => [$this->branch]
         ]);
 
-        if(!empty($Response['items'][0])) return $Response;
+        if(!empty($Response['items'][0])) return $Response['items'][0];
         else return false;
     }
 

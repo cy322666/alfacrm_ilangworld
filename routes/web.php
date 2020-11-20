@@ -16,13 +16,14 @@
 //middleware для проверки как давно было обновление сущности которая пришла?
 
 
-//$router->get('/', 'CustomerController@create');
-$router->get('/', 'LeadController@create');
+//$router->get('/', 'CustomerController@update_status');
+//$router->get('/', 'LeadController@create');
 
-//$router->post('/leads/create', 'LeadController@create');
+$router->get('/leads/create', 'LeadController@create');
+$router->get('/tariff/create', 'TariffController@create');
 //$router->post('/leads/update', 'LeadController@update');
 
 //$router->post('/customer/create', 'CustomerController@create');
-//$router->post('/customer/update', 'CustomerController@update');
+$router->get('/customer/update_status', 'CustomerController@update_status');
 //$router->post('/tariff/create', 'TariffController@create');
 //$router->post('/tariff/update', 'TariffController@update');

@@ -46,27 +46,37 @@ class LeadController extends Controller
         $contact->age        = $amo_contact->cf('Возраст')->getValue();   //Возраст (контакт)
         $contact->save();
 
-        //теперь что касается сделки
-        if($lead->customer_id) {
-            //знаем ид лида в альфа
-            //проверяем на активность??
-            $customer = Customer::find($lead->customer_id);
 
-            $alfa_customer = $customer->updateAlfa($lead, $contact);
-            //вроде все
-        } else {
-            $customer = new Customer();
+        $customer = new Customer();
 
-            $alfa_customer = $customer->searchAlfa($contact);//проверка статуса?//типа клиента?
+        $alfa_customer = $customer->searchAlfa($contact);//проверка статуса?//типа клиента?
 
-            if(!$alfa_customer) $alfa_customer = $customer->createAlfa($lead, $contact);
-
-            $customer->customer_id = $alfa_customer['id'];
-            $lead->customer_id = $alfa_customer['id'];
-
-            $customer->save();
-            $lead->save();
+        if(!$alfa_customer) $alfa_customer = $customer->createAlfa($lead, $contact);
+        else {
+            $alfa_customer->setStudy(0);
+            $alfa_customer->updateAmo($lead, $contact);
         }
+
+        $lead->customer_id = $alfa_customer['id'];
+        $lead->save();
+
+        $customer->customer_id = $alfa_customer['id'];
+        $customer->status_id  = $alfa_customer['lead_status_id'];
+        $customer->contact_id = $contact->contact_id;
+        $customer->lead_id    = $lead->lead_id;
+        $customer->name       = $contact->name;
+        $customer->phone      = $contact->phone;
+        $customer->study      = 0;
+        $customer->email      = $contact->email;
+        $customer->loyalty    = $contact->loyalty;//Лояльность (контакт)
+        $customer->sex        = $contact->sex;    //Пол (контакт)
+        $customer->age        = $contact->age;    //Возраст (контакт)
+        $customer->datetime_trial = $lead->datetime_trial;
+        $customer->teacher    = $lead->teacher;
+        $customer->method     = $lead->method;
+        $customer->languange  = $lead->languange;
+        $customer->save();
+
         dd($alfa_customer);
         /*
          *
@@ -101,22 +111,22 @@ class LeadController extends Controller
         "web" => []
         "addr" => []
          */
-        //$customer->customer_id = $alfa_customer['id'];
-        //$customer->status_id = $alfa_customer['status_id'];
-
-        //$amo_lead->cf('Ссылка на лид в Альфа') = 'https://'.$customer->id;
-        //$amo_lead->save();
     }
 
     public function update()
     {
-        $arr = [
-            'id' => 4432322,
-            //'cost' => 100,
-            'status_id' => 12323,
-            'pipeline_id' => 11111,
-            'contact_id' => 11111,
-        ];
+/*
+ *         //теперь что касается сделки
+        if($lead->customer_id) {
+            //знаем ид лида в альфа
+            //проверяем на активность??
+            $customer = Customer::find($lead->customer_id);
+
+            $alfa_customer = $customer->updateAlfa($lead, $contact);
+            dd($alfa_customer);
+            //вроде все
+        } else {
+ */
 
         $lead = Lead::find($arr['id']);
         if ($lead) {

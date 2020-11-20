@@ -9,13 +9,20 @@ use cy322666\AlfaCRM\Api;
 
 class Customer extends Model
 {
-    protected $fillable = [
-        'name',
-        'branch_id',
-        'customer_id',
-    ];
+    protected $attributes = array(
+        'datetime_trial' => '',
+        'teacher' => '',
+        'method' => '',
+        'languange' => '',
+        'email' => '',
+        'phone' => '',
+        'loyalty' => '',
+    );
 
     protected $primaryKey = 'customer_id';
+
+    private $study;
+
     public $alfaApi;
 
     public function __construct()
@@ -66,6 +73,11 @@ class Customer extends Model
         return $alfa_customer['model'];
     }
 
+    public function setStudy($study)
+    {
+        $this->study = $study;
+    }
+
     public function updateAlfa(Lead $lead, Contact $contact)
     {
         $allStatuses = $this->alfaApi->LeadStatus->getAll();
@@ -76,17 +88,21 @@ class Customer extends Model
         $customer = $this->alfaApi->Customer;
         $customer->name = $contact->name;
         $customer->legal_type = 1;
-        $customer->is_study = 0;
+        $customer->is_study = $this->study;
         $customer->phone = $contact->phone;
-        $customer->legal_name = 'legal_name';
+        $customer->legal_name = $contact->name;
+        $customer->loyalty = $contact->loyalty;
         $customer->study_status_id = 1;
         $customer->lead_status_id = $statusId;
         $customer->branch_ids = [1];
         $customer->branch = 1;
         $customer->email = $contact->email;
+        $customer->datetime_trial = $lead->datetime_trial;
+        $customer->teacher = $lead->teacher;
+        $customer->method = $lead->method;
+        $customer->languange = $lead->languange;
 
-        dd($customer);
-        $alfa_customer = $customer->update();
+        $alfa_customer = $customer->update($lead->customer_id);
 
         return $alfa_customer['model'];
     }

@@ -25,7 +25,15 @@ class Leads extends Migration
             $table->string('teacher')->nullable();
             $table->string('method')->nullable();
             $table->string('languange')->nullable();
-            $table->dateTime('datetime_trial')->nullable();
+            $table->string('datetime_trial')->nullable();
+
+            $table->string('os_learner')->nullable();//ОС от ученика
+            $table->string('os_teacher')->nullable();//ОС от преподавателя
+            $table->string('count_lessons')->nullable();//Кол-во занятий
+            $table->string('rate')->nullable();//Пакет
+            $table->string('count_mouth')->nullable();//Кол-во месяцев
+            $table->string('date_start')->nullable();//Дата начала обучения
+            $table->string('date_finish')->nullable();//Дата окончания обучения
             $table->timestamps();
         });
     }
