@@ -25,6 +25,7 @@ class Leads extends Migration
             $table->string('teacher')->nullable();
             $table->string('method')->nullable();
             $table->string('languange')->nullable();
+            $table->string('is_study')->nullable();
             $table->string('datetime_trial')->nullable();
 
             $table->string('os_learner')->nullable();//ОС от ученика

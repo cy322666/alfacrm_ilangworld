@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Lead;
 use App\Models\Contact;
 use App\Models\Customer;
+use App\Models\Tariff;
 
 class TariffController extends Controller
 {
@@ -82,6 +83,22 @@ class TariffController extends Controller
 
     public function pay()//присвоение
     {
+        $arr = json_decode(file_get_contents(storage_path('tariff_pay.txt')), true);
 
+        $tariff = new Tariff();
+        $tariff->tariff_id = $arr['entity_id'];
+        $tariff->customer_id = $arr['fields_new']['customer_id'];
+        $tariff->income = $arr['fields_new']['income'];
+        $tariff->pay_type_id = $arr['fields_new']['pay_type_id'];
+        $tariff->save();
+
+        //dd($tariff->alfaApi);
+        $alfa_tariff = $tariff->alfaApi->Tariff;
+        $alfa_tariff = $alfa_tariff->findByCustomer($tariff->customer_id);
+
+        //берем ид клиента
+        //смотрим его абоны
+        //кидам в бд
+        //в контроллере урока считаем занятия
     }
 }

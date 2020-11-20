@@ -14,6 +14,7 @@ class Api
     public $LeadSource;
     public $LeadStatus;
     public $Calendar;
+    public $Tariff;
 
     private $url = '/auth/login';
     private $authorization = false;
@@ -29,7 +30,8 @@ class Api
         'Customer' => '',
         'LeadSource' => '',
         'LeadStatus' => '',
-        'Calendar' => ''
+        'Calendar' => '',
+        'Tariff' => '',
     ];
 
     public function __construct($access)

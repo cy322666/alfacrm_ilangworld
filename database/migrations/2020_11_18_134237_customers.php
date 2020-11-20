@@ -19,7 +19,7 @@ class Customers extends Migration
             $table->integer('contact_id')->nullable();
             $table->integer('status_id')->nullable();
             $table->integer('customer_id');
-            $table->integer('study');
+            $table->integer('is_study');
             $table->string('name')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
