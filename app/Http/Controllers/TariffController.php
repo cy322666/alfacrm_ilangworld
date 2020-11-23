@@ -9,11 +9,6 @@ use App\Models\Tariff;
 
 class TariffController extends Controller
 {
-    public function __construct()//Request $request
-    {
-
-    }
-
     public function create()//Request $request
     {
         $lead = json_decode(file_get_contents(storage_path('create_lead.txt')), true);
@@ -92,13 +87,99 @@ class TariffController extends Controller
         $tariff->pay_type_id = $arr['fields_new']['pay_type_id'];
         $tariff->save();
 
-        //dd($tariff->alfaApi);
         $alfa_tariff = $tariff->alfaApi->Tariff;
-        $alfa_tariff = $alfa_tariff->findByCustomer($tariff->customer_id);
+        $alfa_tariffs = $alfa_tariff->findByCustomer($tariff->customer_id);
 
-        //берем ид клиента
-        //смотрим его абоны
-        //кидам в бд
-        //в контроллере урока считаем занятия
+        if($alfa_tariffs) {
+            foreach ($alfa_tariffs as $arrayTariff) {
+                if($arrayTariff['e_date'] > date('d.m.Y')) {
+                    //активный абон
+                    $arrayAlfaTariff = $alfa_tariff->get($tariff->tariff_id);
+
+                    $tariff->date_start = $arrayTariff['b_date'];
+                    $tariff->date_finish = $arrayTariff['e_date'];
+                    $tariff->count_lessons = $arrayAlfaTariff[0]['lessons_count'];
+
+                    $tariff->save();
+                }
+            }
+        }
+    }
+
+    public function lesson()//провели урок
+    {
+        $arr = json_decode(file_get_contents(storage_path('lesson.txt')), true);
+//в хуке приходит массив с ид
+        //проведенный
+        /*
+         * {
+  "branch_id": 1,
+  "event": "update",
+  "entity": "Lesson",
+  "entity_id": 4,
+  "fields_old": {
+    "status": 1,
+    "group_ids": null
+  },
+  "fields_new": {
+    "status": 3,//3 - проведен, 2 - отменен
+    "group_ids": []
+  },
+  "fields_rel": [],
+  "user_id": 2,
+  "datetime": "2020-11-23 19:19:08"
+}
+         */
+        $lesson_id = $arr['entity_id'];
+
+        $tariff = new Tariff();
+        $lesson = $tariff->alfaApi->Lesson;
+        $lesson = $lesson->get($lesson_id);
+
+        $tariff = Tariff::find(['customer_id' => $lesson['customer_ids'][0]]);
+
+        if($lesson['status'] == 3 || $lesson['status'] == 2) {
+            if($tariff->las_lessons) {
+                $tariff->las_lessons = $tariff->last_lessons - 1;
+            } else {
+                $tariff->las_lessons = $tariff->count_lessons - 1;
+            }
+        }
+        /*
+         *   0 => array:16 [▼
+    "id" => 3
+    "branch_id" => 1
+    "date" => "2020-11-20"
+    "time_from" => "2020-11-20 14:00:01"
+    "time_to" => "2020-11-20 15:00:00"
+    "lesson_type_id" => 3
+    "status" => 3
+    "subject_id" => 8
+    "room_id" => null
+    "teacher_ids" => array:1 [▶]
+    "customer_ids" => array:1 [▶]
+    "group_ids" => []
+    "streaming" => false
+    "note" => ""
+    "topic" => ""
+    "details" => array:1 [▶]
+  ]
+]
+         */
+        dd($lesson);
+        //находим в бд абон
+        //минусуем
+    }
+
+    public function cron()//каждые 00:01 проверка 2 дня до конца абона
+    {
+        $tarrifs = Tariff::find(['last_lessons' => 2]);
+        if($tarrifs != null) {
+            foreach ($tarrifs as $tarrif) {
+                //действия в амо
+            }
+        }
+        //ищем в бд тех у кого через 2 урока
+        //делаем штучки в амо
     }
 }

@@ -24,7 +24,7 @@ class Branch
             'is_active' => 1,
             'page' => 0
         ]);
-        echo '<pre>'; var_dump($Response['items']); echo '</pre>';
+       // echo '<pre>'; var_dump($Response['items']); echo '</pre>';
         return $Response['items'];
 
     }

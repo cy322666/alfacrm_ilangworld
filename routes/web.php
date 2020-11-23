@@ -21,6 +21,7 @@
 
 $router->get('/leads/create', 'LeadController@create');
 $router->get('/tariff/create', 'TariffController@create');
+$router->get('/tariff/pay', 'TariffController@pay');
 //$router->post('/leads/update', 'LeadController@update');
 
 //$router->post('/customer/create', 'CustomerController@create');
