@@ -33,11 +33,11 @@ class Customer extends Model
         $this->alfaApi = new Api($access);
     }
 
-    public function searchAlfa(Contact $contact)
+    public function searchAlfa(Contact $contact, $study)
     {
         $customer = $this->alfaApi->Customer;
 
-        $customer->is_study = 0;
+        $customer->is_study = $study;
         $customer->branch = 1;
 
         if($contact->phone) $alfa_customer = $customer->findByPhone($contact->phone);

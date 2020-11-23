@@ -49,16 +49,29 @@ class LeadController extends Controller
 
         $customer = new Customer();
 
-        $alfa_customer = $customer->searchAlfa($contact);//проверка статуса?//типа клиента?
+        $alfa_customer = $customer->searchAlfa($contact, 0);
 
-        if(!$alfa_customer) $alfa_customer = $customer->createAlfa($lead, $contact);
-        else {
-            $alfa_customer->setStudy(0);
-            $alfa_customer->updateAmo($lead, $contact);
+        if(!$alfa_customer) {
+            $customer->setStudy(0);
+            $alfa_customer = $customer->createAlfa($lead, $contact);
+
+            $lead->customer_id = $alfa_customer['id'];
+            $lead->save();
+//            $alfa_customer = $customer->searchAlfa($contact, 1);
+//            if(!$alfa_customer) $alfa_customer = $customer->createAlfa($lead, $contact);
+//            else {
+//                $alfa_customer->setStudy(0);
+//                $alfa_customer->updateAlfa($lead, $contact);
+//            }
+        } else {
+            $lead->customer_id = $alfa_customer['id'];
+            $lead->save();
+
+            $customer->setStudy(0);
+            $customer->updateAlfa($lead, $contact);
         }
 
-        $lead->customer_id = $alfa_customer['id'];
-        $lead->save();
+
 
         $customer->customer_id = $alfa_customer['id'];
         $customer->status_id  = $alfa_customer['lead_status_id'];
@@ -66,7 +79,7 @@ class LeadController extends Controller
         $customer->lead_id    = $lead->lead_id;
         $customer->name       = $contact->name;
         $customer->phone      = $contact->phone;
-        $customer->study      = 0;
+        $customer->is_study      = 0;
         $customer->email      = $contact->email;
         $customer->loyalty    = $contact->loyalty;//Лояльность (контакт)
         $customer->sex        = $contact->sex;    //Пол (контакт)

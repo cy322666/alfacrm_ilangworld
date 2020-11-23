@@ -9,15 +9,17 @@ use App\Models\Tariff;
 
 class TariffController extends Controller
 {
-    public function create()//Request $request
+    public function create()//Request $request //переход в 142
     {
         $lead = json_decode(file_get_contents(storage_path('create_lead.txt')), true);
         //$_POST['add'] or ['status']
+
         $lead_id = $lead['status'][0]['id'] ?  $lead['status'][0]['id'] : $lead['add'][0]['id'];
+
+        $lead = Lead::find($lead_id);
 
         $amo_lead = $lead->amoApi->leads()->find($lead_id);
 
-        $lead = Lead::find($lead_id);
         $lead->lead_id = $amo_lead->id;
         $lead->name    = $amo_lead->name;
         //$lead->sale    = $amo_lead->sale;
@@ -49,9 +51,11 @@ class TariffController extends Controller
         $contact->save();
 
         $customer = Customer::find($lead->customer_id);
-        $alfa_customer = $customer->alfaApi->Customer->findById($customer->id, 0);//0 - лид//1 - клиент;
-        $alfa_customer->setStudy(1);
-        $alfa_customer->updateAmo($lead, $contact);
+        //dd($lead->customer_id);
+        $alfa_customer = $customer->alfaApi->Customer->findById($lead->customer_id, 0);//0 - лид//1 - клиент;??
+
+        $customer->setStudy(1);
+        $customer->updateAlfa($lead, $contact);
 
         $customer->customer_id = $alfa_customer['id'];
         $customer->contact_id = $contact->contact_id;
@@ -76,7 +80,7 @@ class TariffController extends Controller
         $customer->save();
     }
 
-    public function pay()//присвоение
+    public function pay()//оплата у клиента в альфе
     {
         $arr = json_decode(file_get_contents(storage_path('tariff_pay.txt')), true);
 
