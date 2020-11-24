@@ -10,19 +10,18 @@ class LeadController extends Controller
 {
     public function create()//Request $request
     {
-        $lead = json_decode(file_get_contents(storage_path('create_lead.txt')), true);
+        $arr = json_decode(file_get_contents(storage_path('create_lead.txt')), true);
         //$_POST['add'] or ['status']
-        $lead_id = $lead['status'][0]['id'] ?  $lead['status'][0]['id'] : $lead['add'][0]['id'];
+        $lead_id = $arr['status'][0]['id'] ?  $arr['status'][0]['id'] : $arr['add'][0]['id'];
 
-        $lead = Lead::find($lead_id);
+        $lead = Lead::where('lead_id', $lead_id)->first();
 
-        if(!$lead) $lead = new Lead();
+        if(empty($lead)) $lead = new Lead();
 
         $amo_lead = $lead->amoApi->leads()->find($lead_id);
 
         $lead->lead_id = $amo_lead->id;
         $lead->name    = $amo_lead->name;
-        //$lead->sale    = $amo_lead->sale;
         $lead->contact_id  = $amo_lead->main_contact_id;
         $lead->status_id   = $amo_lead->status_id;
         $lead->pipeline_id = $amo_lead->pipeline_id;
@@ -47,7 +46,10 @@ class LeadController extends Controller
         $contact->save();
 
 
-        $customer = new Customer();
+        $customer = Customer::where('customer_id', $lead->customer)->first();
+
+        if(empty($customer)) $customer = Customer::where('lead_id', $lead_id)->first();
+        if(empty($customer)) $customer = new Customer();
 
         $alfa_customer = $customer->searchAlfa($contact, 0);
 
@@ -55,8 +57,6 @@ class LeadController extends Controller
             $customer->setStudy(0);
             $alfa_customer = $customer->createAlfa($lead, $contact);
 
-            $lead->customer_id = $alfa_customer['id'];
-            $lead->save();
 //            $alfa_customer = $customer->searchAlfa($contact, 1);
 //            if(!$alfa_customer) $alfa_customer = $customer->createAlfa($lead, $contact);
 //            else {
@@ -64,31 +64,34 @@ class LeadController extends Controller
 //                $alfa_customer->updateAlfa($lead, $contact);
 //            }
         } else {
-            $lead->customer_id = $alfa_customer['id'];
-            $lead->save();
-
             $customer->setStudy(0);
-            $customer->updateAlfa($lead, $contact);
+            $customer->updateAlfa($alfa_customer['id'], $lead, $contact);
         }
 
+        if($alfa_customer) {
+            $customer->customer_id = $alfa_customer['id'];
+            $customer->status_id  = $alfa_customer['lead_status_id'];
+            $customer->contact_id = $amo_contact->id;
+            $customer->lead_id    = $amo_lead->id;
+            $customer->name       = $contact->name;
+            $customer->phone      = $contact->phone;
+            $customer->is_study   = 0;
+            $customer->email      = $contact->email;
+            $customer->loyalty    = $contact->loyalty;//Лояльность (контакт)
+            $customer->sex        = $contact->sex;    //Пол (контакт)
+            $customer->age        = $contact->age;    //Возраст (контакт)
+            $customer->datetime_trial = $lead->datetime_trial;
+            $customer->teacher    = $lead->teacher;
+            $customer->method     = $lead->method;
+            $customer->languange  = $lead->languange;
+            $customer->save();
 
 
-        $customer->customer_id = $alfa_customer['id'];
-        $customer->status_id  = $alfa_customer['lead_status_id'];
-        $customer->contact_id = $contact->contact_id;
-        $customer->lead_id    = $lead->lead_id;
-        $customer->name       = $contact->name;
-        $customer->phone      = $contact->phone;
-        $customer->is_study      = 0;
-        $customer->email      = $contact->email;
-        $customer->loyalty    = $contact->loyalty;//Лояльность (контакт)
-        $customer->sex        = $contact->sex;    //Пол (контакт)
-        $customer->age        = $contact->age;    //Возраст (контакт)
-        $customer->datetime_trial = $lead->datetime_trial;
-        $customer->teacher    = $lead->teacher;
-        $customer->method     = $lead->method;
-        $customer->languange  = $lead->languange;
-        $customer->save();
+            $lead = Lead::where('lead_id', $lead_id)->first();
+            $lead->customer_id = $alfa_customer['id'];
+            $lead->save();
+        }
+
 
         dd($alfa_customer);
         /*

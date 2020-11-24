@@ -60,14 +60,22 @@ class Customer extends Model
         $customer->legal_type = 1;
         $customer->is_study = 0;
         $customer->phone = $contact->phone;
-        $customer->legal_name = 'legal_name';
+        $customer->legal_name = $contact->name;
         $customer->study_status_id = 1;
         $customer->lead_status_id = $statusId;
         $customer->branch_ids = [1];
         $customer->branch = 1;
         $customer->email = $contact->email;
+        //$customer->sex        = $contact->sex;    //Пол (контакт)
+        //$customer->age        = $contact->age;    //Возраст (контакт)
+        $customer->datetime_trial = $lead->datetime_trial;
+        $customer->teacher    = $lead->teacher;
+        $customer->method     = $lead->method;
+        $customer->languange  = $lead->languange;
+        $customer->loyalty  = $contact->loyalty;
 
-        dd($customer);
+
+
         $alfa_customer = $customer->create();
 
         return $alfa_customer['model'];
@@ -78,33 +86,44 @@ class Customer extends Model
         $this->study = $study;
     }
 
-    public function updateAlfa(Lead $lead, Contact $contact)
+    public function updateAlfa($id, Lead $lead, Contact $contact)
     {
-        $allStatuses = $this->alfaApi->LeadStatus->getAll();
+        if($lead->customer_id) {
+            $allStatuses = $this->alfaApi->LeadStatus->getAll();
 
-        $statusAmoName = Helper::getNameStatus($contact, $lead->status_id);
-        $statusId      = Helper::getIdStatusByName($allStatuses['items'], $statusAmoName);
+            $statusAmoName = Helper::getNameStatus($contact, $lead->status_id);
+            $statusId      = Helper::getIdStatusByName($allStatuses['items'], $statusAmoName);
 
-        $customer = $this->alfaApi->Customer;
-        $customer->name = $contact->name;
-        $customer->legal_type = 1;
-        $customer->is_study = $this->study;
-        $customer->phone = $contact->phone;
-        $customer->legal_name = $contact->name;
-        $customer->loyalty = $contact->loyalty;
-        $customer->study_status_id = 1;
-        $customer->lead_status_id = $statusId;
-        $customer->branch_ids = [1];
-        $customer->branch = 1;
-        $customer->email = $contact->email;
-        $customer->datetime_trial = $lead->datetime_trial;
-        $customer->teacher = $lead->teacher;
-        $customer->method = $lead->method;
-        $customer->languange = $lead->languange;
+            $customer = $this->alfaApi->Customer;
+            $customer->name = $contact->name;
+            $customer->legal_type = 1;
+            $customer->is_study = $this->study;
+            $customer->phone = $contact->phone;
+            $customer->legal_name = $contact->name;
+            $customer->loyalty = $contact->loyalty;
+            $customer->study_status_id = 1;
+            $customer->lead_status_id = $statusId;
+            $customer->branch_ids = [1];
+            $customer->branch = 1;
+            $customer->count_lessons = $lead->count_lessons;
+            $customer->email = $contact->email;
+            $customer->datetime_trial = $lead->datetime_trial;
+            $customer->teacher = $lead->teacher;
+            $customer->method = $lead->method;
+            $customer->languange = $lead->languange;
+            $customer->date_start = $lead->date_start;
+            $customer->date_finish = $lead->date_finish;
+            $customer->count_mouth = $lead->count_mouth;
+            $customer->rate = $lead->rate;
+            $customer->os_learner = $lead->os_learner;
+            $customer->os_teacher = $lead->os_teacher;
 
-        $alfa_customer = $customer->update($lead->customer_id);
+            $alfa_customer = $customer->update($id);
 
-        return $alfa_customer['model'];
+            return $alfa_customer['model'];
+        } else {
+            return false;
+        }
     }
 }
 

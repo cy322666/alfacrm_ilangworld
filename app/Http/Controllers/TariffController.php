@@ -16,7 +16,9 @@ class TariffController extends Controller
 
         $lead_id = $lead['status'][0]['id'] ?  $lead['status'][0]['id'] : $lead['add'][0]['id'];
 
-        $lead = Lead::find($lead_id);
+        $lead = Lead::where('lead_id', $lead_id)->first();
+
+        if(empty($lead)) $lead = new Lead();
 
         $amo_lead = $lead->amoApi->leads()->find($lead_id);
 
@@ -32,13 +34,15 @@ class TariffController extends Controller
         $lead->os_learner = $amo_lead->cf('ОС от ученика')->getValue();
         $lead->os_teacher = $amo_lead->cf('ОС от преподавателя')->getValue();
         $lead->count_lessons = $amo_lead->cf('Кол-во занятий')->getValue();
-        $lead->rate = $amo_lead->cf('Пакет')->getValue();
+        $lead->rate        = $amo_lead->cf('Пакет')->getValue();
         $lead->count_mouth = $amo_lead->cf('Кол-во месяцев')->getValue();
         $lead->date_start  = $amo_lead->cf('Дата начала обучения')->getValue();
         $lead->date_finish = $amo_lead->cf('Дата окончания обучения')->getValue();
         $lead->save();
 
-        $contact = Contact::find($lead->contact_id);
+        if($lead->contact_id) $contact = Contact::find($lead->contact_id);
+        if(empty($contact))   $contact = new Contact();
+
         $amo_contact = $contact->amoApi->contacts()->find($lead->contact_id);
 
         $contact->contact_id = $amo_contact->id;
@@ -51,19 +55,25 @@ class TariffController extends Controller
         $contact->save();
 
         $customer = Customer::find($lead->customer_id);
-        //dd($lead->customer_id);
+
         $alfa_customer = $customer->alfaApi->Customer->findById($lead->customer_id, 0);//0 - лид//1 - клиент;??
 
         $customer->setStudy(1);
-        $customer->updateAlfa($lead, $contact);
 
-        $customer->customer_id = $alfa_customer['id'];
+//        dump($lead->customer_id);
+//        dump($lead);
+//        dump($contact);
+//
+//        exit;
+        $customer->updateAlfa($lead->customer_id, $lead, $contact);
+
+        $customer->customer_id = $lead->customer_id;
         $customer->contact_id = $contact->contact_id;
         $customer->lead_id    = $lead->lead_id;
         $customer->name       = $contact->name;
         $customer->phone      = $contact->phone;
         $customer->email      = $contact->email;
-        $customer->study      = 1;
+        $customer->is_study   = 1;
         $customer->loyalty    = $contact->loyalty;
         $customer->sex        = $contact->sex;
         $customer->age        = $contact->age;
@@ -85,13 +95,13 @@ class TariffController extends Controller
         $arr = json_decode(file_get_contents(storage_path('tariff_pay.txt')), true);
 
         $tariff = new Tariff();
-        $tariff->tariff_id = $arr['entity_id'];
+        $tariff->tariff_id   = $arr['entity_id'];
         $tariff->customer_id = $arr['fields_new']['customer_id'];
-        $tariff->income = $arr['fields_new']['income'];
+        $tariff->income      = $arr['fields_new']['income'];
         $tariff->pay_type_id = $arr['fields_new']['pay_type_id'];
         $tariff->save();
 
-        $alfa_tariff = $tariff->alfaApi->Tariff;
+        $alfa_tariff  = $tariff->alfaApi->Tariff;
         $alfa_tariffs = $alfa_tariff->findByCustomer($tariff->customer_id);
 
         if($alfa_tariffs) {
@@ -103,6 +113,7 @@ class TariffController extends Controller
                     $tariff->date_start = $arrayTariff['b_date'];
                     $tariff->date_finish = $arrayTariff['e_date'];
                     $tariff->count_lessons = $arrayAlfaTariff[0]['lessons_count'];
+                    $tariff->last_lessons = $arrayAlfaTariff[0]['lessons_count'];
 
                     $tariff->save();
                 }
@@ -143,10 +154,10 @@ class TariffController extends Controller
         $tariff = Tariff::find(['customer_id' => $lesson['customer_ids'][0]]);
 
         if($lesson['status'] == 3 || $lesson['status'] == 2) {
-            if($tariff->las_lessons) {
-                $tariff->las_lessons = $tariff->last_lessons - 1;
+            if(!empty($tariff->last_lessons)) {
+                $tariff->last_lessons = $tariff->last_lessons - 1;
             } else {
-                $tariff->las_lessons = $tariff->count_lessons - 1;
+                $tariff->last_lessons = $tariff->count_lessons - 1;
             }
         }
         /*
@@ -169,10 +180,7 @@ class TariffController extends Controller
     "details" => array:1 [▶]
   ]
 ]
-         */
-        dd($lesson);
-        //находим в бд абон
-        //минусуем
+*/
     }
 
     public function cron()//каждые 00:01 проверка 2 дня до конца абона
@@ -180,6 +188,27 @@ class TariffController extends Controller
         $tarrifs = Tariff::find(['last_lessons' => 2]);
         if($tarrifs != null) {
             foreach ($tarrifs as $tarrif) {
+                $lead = Lead::where('customer_id', $tarrif->customer_id);
+                $contact = $lead->amoApi->leads()->find($lead->contact_id);
+                $leads = $contact->leads;
+                if(!empty($leads->first())) {
+                    foreach ($leads->toArray() as $array_lead) {
+                        if(($array_lead['pipeline_id'] == '3185458') &&
+                            ($array_lead['status_id'] != '142') &&
+                            ($array_lead['status_id'] == '143')) {
+
+                            $task = $lead->amoApi->tasks()->create();
+                            $task->text = 'У клиента заканчивается абонемент. Инициировать повторную продажу';
+                            $task->element_type = 2;
+                            $task->element_id = $array_lead['id'];
+                            //тип таски
+                            //время выполнения
+                            $task->save();
+
+                            //нужно ли делать флаг для повторной проверки такого кейса
+                        }
+                    }
+                }
                 //действия в амо
             }
         }

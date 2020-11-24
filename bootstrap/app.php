@@ -106,6 +106,10 @@ $app->configure('app');
 |
 */
 
+if (env('APP_DEBUG')) {
+    $app->register(Barryvdh\Debugbar\LumenServiceProvider::class);
+}
+
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
 ], function ($router) {

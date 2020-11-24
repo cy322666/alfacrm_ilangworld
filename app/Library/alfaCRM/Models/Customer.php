@@ -25,6 +25,13 @@ class Customer
     public $languange;
     public $loyalty;
     public $email;
+    public $date_start;
+    public $date_finish;
+    public $count_mouth;
+    public $count_lessons;
+    public $rate;
+    public $os_learner;
+    public $os_teacher;
 
     private $Curl;
     private $url = '/customer/';
@@ -49,11 +56,16 @@ class Customer
             'custom_teacher' => $this->teacher,
             'custom_method' => $this->method,
             'custom_languange' => $this->languange,
+            'custom_count_lessons' => $this->count_lessons,
             'custom_loyalty' => $this->loyalty,
+            'custom_date_start' => $this->date_start,
+            'custom_date_finish' => $this->date_finish,
+            'custom_count_mouth' => $this->count_mouth,
+            'custom_rate' => $this->rate,
+            'custom_os_learner' => $this->os_learner,
+            'custom_os_teacher' => $this->os_teacher,
             'phone' => $this->phone,
             'email' => $this->email,
-            'dob' => $this->dob,
-            //'note' => $this->note
         ];
 
         return $arrayCreateFields;
@@ -85,29 +97,6 @@ class Customer
 
         if(!empty($Response['items'][0])) return $Response['items'][0];
         else return false;
-    }
-
-//    public function __get($name)
-//    {
-//        if(empty($this->$name)) {
-//            $this->$name = '';
-//
-//            dd($this->$name);
-//            return $this->$name;
-//        }
-//    }
-
-    private function parseResponse($Response)
-    {
-//        $this->id = $Response['id'];
-//        $this->branch_ids = $Response['branch_ids'];
-//        $this->is_study = $Response['is_study'];
-//        $this->legal_type = $Response['legal_type'];
-//        $this->lead_status_id = $Response['lead_status_id'];
-//        $this->phone = $Response['phone'];
-//        $this->email = $Response['email'];
-//        $this->note = $Response['note'];
-//        $this->dob = $Response['dob'];
     }
 
     public function update($id)
